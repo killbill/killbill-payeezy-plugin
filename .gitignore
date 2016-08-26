@@ -1,0 +1,22 @@
+# Package Files #
+*.jar
+*.war
+*.ear
+
+.idea/workspace.xml
+.idea/libraries
+.idea/dictionaries/
+.idea/dbnavigator.xml
+*.ipr
+*.iws
+
+*.DS_Store
+
+*.iml
+target
+
+dependency-reduced-pom.xml
+dependency-reduced-pom.xml.bak
+
+src/test/resources/payeezy.properties
+release.properties
