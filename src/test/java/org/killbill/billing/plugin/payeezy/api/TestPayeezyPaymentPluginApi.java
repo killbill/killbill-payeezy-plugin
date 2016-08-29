@@ -59,6 +59,15 @@ public class TestPayeezyPaymentPluginApi extends TestRemoteBase {
                                                                                                                  .put(PayeezyPaymentPluginApi.PROPERTY_CC_EXPIRATION_YEAR, String.valueOf(CC_EXPIRATION_YEAR))
                                                                                                                  .build());
 
+    private final Iterable<PluginProperty> propertiesWithTokenInfo = PluginProperties.buildPluginProperties(ImmutableMap.<String, String>builder()
+                                                                                                                    .put(PayeezyPaymentPluginApi.PROPERTY_CC_TYPE, CC_TYPE)
+                                                                                                                    .put(PayeezyPaymentPluginApi.PROPERTY_TOKEN, "2537446225198291")
+                                                                                                                    .put(PayeezyPaymentPluginApi.PROPERTY_CC_FIRST_NAME, "John")
+                                                                                                                    .put(PayeezyPaymentPluginApi.PROPERTY_CC_LAST_NAME, "Smith")
+                                                                                                                    .put(PayeezyPaymentPluginApi.PROPERTY_CC_EXPIRATION_MONTH, String.valueOf(CC_EXPIRATION_MONTH))
+                                                                                                                    .put(PayeezyPaymentPluginApi.PROPERTY_CC_EXPIRATION_YEAR, String.valueOf(CC_EXPIRATION_YEAR))
+                                                                                                                    .build());
+
     private final Iterable<PluginProperty> propertiesWithDDInfo = PluginProperties.buildPluginProperties(ImmutableMap.<String, String>builder()
                                                                                                                  .put(PayeezyPaymentPluginApi.PROPERTY_DD_HOLDER_NAME, "John Smith")
                                                                                                                  .put(PluginPaymentPluginApi.PROPERTY_ADDRESS1, "3 Prinzregentenstrasse")
@@ -79,6 +88,15 @@ public class TestPayeezyPaymentPluginApi extends TestRemoteBase {
             record.setAdditionalData(additionalData);
         }
         return new PayeezyPaymentMethodPlugin(record);
+    }
+
+    @Test(groups = "slow")
+    public void testAuthorizeCaptureAndRefundToken() throws Exception {
+        payeezyPaymentPluginApi.addPaymentMethod(account.getId(), account.getPaymentMethodId(), payeezyEmptyPaymentMethodPlugin(), true, propertiesWithTokenInfo, context);
+
+        final Payment payment = doAuthorize(BigDecimal.TEN, account.getCurrency(), PluginProperties.buildPluginProperties(ImmutableMap.<String, String>of()));
+        doCapture(payment, BigDecimal.TEN);
+        doRefund(payment, BigDecimal.TEN);
     }
 
     @Test(groups = "slow")

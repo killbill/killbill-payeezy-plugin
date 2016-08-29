@@ -46,6 +46,7 @@ import com.firstdata.payeezy.models.transaction.TransactionRequest;
 import com.firstdata.payeezy.models.transaction.TransactionResponse;
 import com.google.common.collect.ImmutableMap;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.Response;
 
 public class PayeezyClientWrapper extends HttpClient {
 
@@ -149,6 +150,7 @@ public class PayeezyClientWrapper extends HttpClient {
         final AsyncHttpClient.BoundRequestBuilder builder = getBuilderWithHeaderAndQuery(verb, url, options);
         if (!GET.equals(verb) && !HEAD.equals(verb)) {
             if (body != null) {
+                logger.info("Payeezy request: {}", body);
                 builder.setBody(body);
             }
         }
@@ -156,6 +158,13 @@ public class PayeezyClientWrapper extends HttpClient {
         setHeaders(body, builder);
 
         return executeAndWait(builder, DEFAULT_HTTP_TIMEOUT_SEC, clazz);
+    }
+
+    @Override
+    protected <T> T deserializeResponse(final Response response, final Class<T> clazz) throws IOException {
+        final String responseBody = response.getResponseBody();
+        logger.info("Payeezy response: {}", responseBody);
+        return mapper.readValue(responseBody, clazz);
     }
 
     private void setHeaders(final String payload, final AsyncHttpClient.BoundRequestBuilder builder) {
