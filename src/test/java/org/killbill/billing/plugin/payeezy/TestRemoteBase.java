@@ -27,6 +27,7 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.TestUtils;
 import org.killbill.billing.plugin.TestWithEmbeddedDBBase;
+import org.killbill.billing.plugin.payeezy.api.PayeezyCurrencyConversionPluginApi;
 import org.killbill.billing.plugin.payeezy.api.PayeezyPaymentPluginApi;
 import org.killbill.billing.plugin.payeezy.client.PayeezyClientWrapper;
 import org.killbill.billing.plugin.payeezy.core.PayeezyActivator;
@@ -56,6 +57,7 @@ public abstract class TestRemoteBase extends TestWithEmbeddedDBBase {
     protected CallContext context;
     protected Account account;
     protected PayeezyPaymentPluginApi payeezyPaymentPluginApi;
+    protected PayeezyCurrencyConversionPluginApi payeezyCurrencyConversionPluginApi;
     protected OSGIKillbillAPI killbillApi;
     protected PayeezyConfigurationHandler payeezyConfigurationHandler;
     protected PayeezyClientWrapper payeezyClientWrapper;
@@ -87,5 +89,6 @@ public abstract class TestRemoteBase extends TestWithEmbeddedDBBase {
 
         final OSGIConfigPropertiesService configPropertiesService = Mockito.mock(OSGIConfigPropertiesService.class);
         payeezyPaymentPluginApi = new PayeezyPaymentPluginApi(payeezyConfigurationHandler, killbillApi, configPropertiesService, logService, clock, payeezyDao);
+        payeezyCurrencyConversionPluginApi = new PayeezyCurrencyConversionPluginApi(payeezyConfigurationHandler);
     }
 }

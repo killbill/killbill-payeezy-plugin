@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.firstdata.payeezy.api.APIResourceConstants;
+import com.firstdata.payeezy.models.transaction.CurrencyConversionResponse;
 import com.firstdata.payeezy.models.transaction.TransactionRequest;
 import com.firstdata.payeezy.models.transaction.TransactionResponse;
 import com.google.common.collect.ImmutableMap;
@@ -143,6 +144,40 @@ public class PayeezyClientWrapper extends HttpClient {
         }
     }
 
+    public CurrencyConversionResponse getDCC(final TransactionRequest transactionRequest) {
+        try {
+            return doCall("POST",
+                          APIResourceConstants.EXCHANGE_RATE,
+                          mapper.writeValueAsString(transactionRequest),
+                          ImmutableMap.<String, String>of(),
+                          CurrencyConversionResponse.class);
+        } catch (final InterruptedException e) {
+            logger.warn("Unable to get DCC for transactionRequest='{}'", transactionRequest, e);
+            return toCurrencyConversionResponse(e);
+        } catch (final ExecutionException e) {
+            logger.warn("Unable to get DCC for transactionRequest='{}'", transactionRequest, e);
+            return toCurrencyConversionResponse(e);
+        } catch (final TimeoutException e) {
+            logger.warn("Unable to get DCC for transactionRequest='{}'", transactionRequest, e);
+            return toCurrencyConversionResponse(e);
+        } catch (final IOException e) {
+            logger.warn("Unable to get DCC for transactionRequest='{}'", transactionRequest, e);
+            return toCurrencyConversionResponse(e);
+        } catch (final URISyntaxException e) {
+            logger.warn("Unable to get DCC for transactionRequest='{}'", transactionRequest, e);
+            return toCurrencyConversionResponse(e);
+        } catch (final InvalidRequest e) {
+            String body;
+            try {
+                body = e.getResponse() != null ? e.getResponse().getResponseBody() : null;
+            } catch (final IOException ignored) {
+                body = null;
+            }
+            logger.warn("Unable to get DCC for transactionRequest='{}', body='{}'", transactionRequest, body, e);
+            return toCurrencyConversionResponse(e, body);
+        }
+    }
+
     @Override
     protected <T> T doCall(final String verb, final String uri, final String body, final Map<String, String> options, final Class<T> clazz) throws InterruptedException, ExecutionException, TimeoutException, IOException, URISyntaxException, InvalidRequest {
         final String url = String.format("%s%s", this.url, uri);
@@ -234,6 +269,22 @@ public class PayeezyClientWrapper extends HttpClient {
     }
 
     private TransactionResponse toTransactionResponse(final Throwable e, @Nullable final String body) {
+        final TransactionResponse transactionResponse = new TransactionResponse();
+        transactionResponse.setExactMessage(getErrorMessage(e, body));
+        return transactionResponse;
+    }
+
+    private CurrencyConversionResponse toCurrencyConversionResponse(final Throwable e) {
+        return toCurrencyConversionResponse(e, null);
+    }
+
+    private CurrencyConversionResponse toCurrencyConversionResponse(final Throwable e, @Nullable final String body) {
+        final CurrencyConversionResponse currencyConversionResponse = new CurrencyConversionResponse();
+        currencyConversionResponse.setStatus(getErrorMessage(e, body));
+        return currencyConversionResponse;
+    }
+
+    private String getErrorMessage(final Throwable e, @Nullable final String body) {
         final Map<String, String> bodyMap = new HashMap<String, String>();
         bodyMap.put(EXCEPTION_CLASS, e.getClass().getCanonicalName());
         bodyMap.put(EXCEPTION_MESSAGE, e.getMessage());
@@ -247,10 +298,6 @@ public class PayeezyClientWrapper extends HttpClient {
         } catch (final JsonProcessingException ignored) {
             messageJSON = null;
         }
-
-        final TransactionResponse transactionResponse = new TransactionResponse();
-        transactionResponse.setExactMessage(messageJSON);
-
-        return transactionResponse;
+        return messageJSON;
     }
 }

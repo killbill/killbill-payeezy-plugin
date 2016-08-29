@@ -22,10 +22,12 @@ import java.util.Hashtable;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.currency.api.CurrencyConversionApi;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.payment.plugin.api.PaymentPluginApi;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.billing.plugin.payeezy.api.PayeezyCurrencyConversionPluginApi;
 import org.killbill.billing.plugin.payeezy.api.PayeezyPaymentPluginApi;
 import org.killbill.billing.plugin.payeezy.client.PayeezyClientWrapper;
 import org.killbill.billing.plugin.payeezy.dao.PayeezyDao;
@@ -56,8 +58,13 @@ public class PayeezyActivator extends KillbillActivatorBase {
         payeezyConfigurationHandler.setDefaultConfigurable(globalPayeezyClient);
 
         // Register the payment plugin
-        final PaymentPluginApi pluginApi = new PayeezyPaymentPluginApi(payeezyConfigurationHandler, killbillAPI, configProperties, logService, clock, dao);
-        registerPaymentPluginApi(context, pluginApi);
+        final PaymentPluginApi paymentPluginApi = new PayeezyPaymentPluginApi(payeezyConfigurationHandler, killbillAPI, configProperties, logService, clock, dao);
+        registerPaymentPluginApi(context, paymentPluginApi);
+
+        // Register the currency conversion plugin
+        final CurrencyConversionApi currencyConversionApi = new PayeezyCurrencyConversionPluginApi(payeezyConfigurationHandler);
+        registerCurrencyConversionApi(context, currencyConversionApi);
+
         registerHandlers();
     }
 
@@ -76,5 +83,11 @@ public class PayeezyActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, PaymentPluginApi.class, api, props);
+    }
+
+    private void registerCurrencyConversionApi(final BundleContext context, final CurrencyConversionApi api) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, CurrencyConversionApi.class, api, props);
     }
 }
