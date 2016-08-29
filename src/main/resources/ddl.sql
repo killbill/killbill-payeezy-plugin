@@ -55,6 +55,10 @@ create table payeezy_payment_methods (
 , cc_issue_number varchar(255) default null
 , cc_verification_value varchar(255) default null
 , cc_track_data varchar(255) default null
+, dd_holder_name varchar(255) default null
+, dd_iban varchar(255) default null
+, dd_bic varchar(255) default null
+, dd_mandate varchar(255) default null
 , address1 varchar(255) default null
 , address2 varchar(255) default null
 , city varchar(255) default null

@@ -53,13 +53,23 @@ import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.clock.Clock;
 import org.osgi.service.log.LogService;
 
+import com.firstdata.payeezy.models.transaction.Address;
 import com.firstdata.payeezy.models.transaction.Card;
+import com.firstdata.payeezy.models.transaction.DebitCard;
 import com.firstdata.payeezy.models.transaction.PaymentMethod;
 import com.firstdata.payeezy.models.transaction.TransactionRequest;
 import com.firstdata.payeezy.models.transaction.TransactionResponse;
 import com.google.common.base.MoreObjects;
 
 public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyResponsesRecord, PayeezyResponses, PayeezyPaymentMethodsRecord, PayeezyPaymentMethods> {
+
+    public static final String PROPERTY_EMAIL = "email";
+
+    // SEPA
+    public static final String PROPERTY_DD_HOLDER_NAME = "ddHolderName";
+    public static final String PROPERTY_DD_ACCOUNT_NUMBER = "ddNumber";
+    public static final String PROPERTY_DD_BANK_IDENTIFIER_CODE = "ddBic";
+    public static final String PROPERTY_DD_MANDATE = "ddMandate";
 
     private final PayeezyConfigurationHandler payeezyConfigurationHandler;
     private final PayeezyDao dao;
@@ -195,11 +205,7 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
                                                      throw new UnsupportedOperationException("To be implemented");
                                                  } else {
                                                      // We are creating a new transaction (AUTHORIZE, PURCHASE or CREDIT)
-                                                     if (transactionType == TransactionType.CREDIT) {
-                                                         throw new UnsupportedOperationException("Not supported by Payeezy");
-                                                     } else {
-                                                         return payeezyClientWrapper.triggerInitialTransaction(transactionRequest);
-                                                     }
+                                                     return payeezyClientWrapper.triggerInitialTransaction(transactionRequest);
                                                  }
                                              }
                                          },
@@ -234,7 +240,6 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
 
         final TransactionRequest transactionRequest = new TransactionRequest();
         transactionRequest.setReferenceNo(kbTransactionId.toString());
-        transactionRequest.setPaymentMethod(PluginProperties.getValue("paymentMethod", PaymentMethod.CREDIT_CARD.getValue(), mergedProperties));
         transactionRequest.setTransactionType(transactionType.name().toLowerCase());
         if (amount != null && currency != null) {
             transactionRequest.setAmount(String.valueOf(KillBillMoney.toMinorUnits(currency.name(), amount)));
@@ -242,28 +247,30 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
         if (currency != null) {
             transactionRequest.setCurrency(currency.name());
         }
+        transactionRequest.setRecurring(null);
 
-        final Card card = new Card();
-        transactionRequest.setCard(card);
+        addCCData(transactionRequest, nonNullPaymentMethodsRecord, properties);
+        addDDData(transactionRequest, nonNullPaymentMethodsRecord, properties);
 
-        final String ccType = PluginProperties.getValue(PROPERTY_CC_NUMBER, nonNullPaymentMethodsRecord.getCcType(), properties);
-        card.setType(ccType);
+        final Address address = new Address();
+        address.setFirstName(PluginProperties.getValue(PROPERTY_CC_FIRST_NAME, nonNullPaymentMethodsRecord.getCcFirstName(), properties));
+        address.setLastName(PluginProperties.getValue(PROPERTY_CC_LAST_NAME, nonNullPaymentMethodsRecord.getCcLastName(), properties));
+        address.setName(PluginProperties.getValue(PROPERTY_DD_HOLDER_NAME, nonNullPaymentMethodsRecord.getDdHolderName(), properties));
+        address.setEmail(PluginProperties.getValue(PROPERTY_EMAIL, account.getEmail(), properties));
+        address.setCity(PluginProperties.getValue(PROPERTY_CITY, nonNullPaymentMethodsRecord.getCity(), properties));
+        address.setCountry(PluginProperties.getValue(PROPERTY_COUNTRY, nonNullPaymentMethodsRecord.getCountry(), properties));
+        address.setAddressLine1(PluginProperties.getValue(PROPERTY_ADDRESS1, nonNullPaymentMethodsRecord.getAddress1(), properties));
+        address.setAddressLine2(PluginProperties.getValue(PROPERTY_ADDRESS2, nonNullPaymentMethodsRecord.getAddress2(), properties));
+        address.setState(PluginProperties.getValue(PROPERTY_STATE, nonNullPaymentMethodsRecord.getState(), properties));
+        address.setZip(PluginProperties.getValue(PROPERTY_ZIP, nonNullPaymentMethodsRecord.getZip(), properties));
+        transactionRequest.setBilling(address);
 
-        final String ccVerificationValue = PluginProperties.getValue(PROPERTY_CC_VERIFICATION_VALUE, nonNullPaymentMethodsRecord.getCcVerificationValue(), properties);
-        card.setCvv(ccVerificationValue);
-
-        final String ccFirstName = PluginProperties.getValue(PROPERTY_CC_FIRST_NAME, nonNullPaymentMethodsRecord.getCcFirstName(), properties);
-        final String ccLastName = PluginProperties.getValue(PROPERTY_CC_LAST_NAME, nonNullPaymentMethodsRecord.getCcLastName(), properties);
-        card.setName(String.format("%s%s", ccFirstName == null ? "" : ccFirstName + " ", ccLastName));
-
-        final String ccNumber = PluginProperties.getValue(PROPERTY_CC_NUMBER, nonNullPaymentMethodsRecord.getCcNumber(), properties);
-        card.setNumber(ccNumber);
-
-        final String ccExpirationMonth = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_MONTH, nonNullPaymentMethodsRecord.getCcExpMonth(), properties);
-        final String ccExpirationYear = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_YEAR, nonNullPaymentMethodsRecord.getCcExpYear(), properties);
-        if (ccExpirationMonth != null && ccExpirationYear != null) {
-            card.setExpiryDt(String.format("%s%s", ccExpirationMonth, ccExpirationYear.substring(ccExpirationYear.length() - 2, ccExpirationYear.length())));
+        String payeezyPaymentMethod = PluginProperties.getValue("paymentMethod", null, mergedProperties);
+        if (payeezyPaymentMethod == null) {
+            payeezyPaymentMethod = transactionRequest.getDebitCard() != null ? "direct_debit" : PaymentMethod.CREDIT_CARD.getValue();
         }
+
+        transactionRequest.setPaymentMethod(payeezyPaymentMethod);
 
         final TransactionResponse response = transactionExecutor.execute(transactionRequest);
         try {
@@ -271,6 +278,64 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
             return new PayeezyPaymentTransactionInfoPlugin(kbPaymentId, kbTransactionId, transactionType, amount, currency, utcNow, response);
         } catch (final SQLException e) {
             throw new PaymentPluginApiException("Payment went through, but we encountered a database error. Payment details: " + response.toString(), e);
+        }
+    }
+
+    private void addCCData(final TransactionRequest transactionRequest, final PayeezyPaymentMethodsRecord nonNullPaymentMethodsRecord, final Iterable<PluginProperty> properties) {
+        boolean isNonEmpty = false;
+
+        final Card card = new Card();
+
+        final String ccType = PluginProperties.getValue(PROPERTY_CC_TYPE, nonNullPaymentMethodsRecord.getCcType(), properties);
+        isNonEmpty = isNonEmpty || ccType != null;
+        card.setType(ccType);
+
+        final String ccVerificationValue = PluginProperties.getValue(PROPERTY_CC_VERIFICATION_VALUE, nonNullPaymentMethodsRecord.getCcVerificationValue(), properties);
+        isNonEmpty = isNonEmpty || ccVerificationValue != null;
+        card.setCvv(ccVerificationValue);
+
+        final String ccFirstName = PluginProperties.getValue(PROPERTY_CC_FIRST_NAME, nonNullPaymentMethodsRecord.getCcFirstName(), properties);
+        final String ccLastName = PluginProperties.getValue(PROPERTY_CC_LAST_NAME, nonNullPaymentMethodsRecord.getCcLastName(), properties);
+        isNonEmpty = isNonEmpty || ccFirstName != null || ccLastName != null;
+        if (ccFirstName != null || ccLastName != null) {
+            card.setName(String.format("%s%s", ccFirstName == null ? "" : ccFirstName + " ", ccLastName));
+        }
+
+        final String ccNumber = PluginProperties.getValue(PROPERTY_CC_NUMBER, nonNullPaymentMethodsRecord.getCcNumber(), properties);
+        isNonEmpty = isNonEmpty || ccNumber != null;
+        card.setNumber(ccNumber);
+
+        final String ccExpirationMonth = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_MONTH, nonNullPaymentMethodsRecord.getCcExpMonth(), properties);
+        final String ccExpirationYear = PluginProperties.getValue(PROPERTY_CC_EXPIRATION_YEAR, nonNullPaymentMethodsRecord.getCcExpYear(), properties);
+        if (ccExpirationMonth != null && ccExpirationYear != null) {
+            isNonEmpty = true;
+            card.setExpiryDt(String.format("%s%s", ccExpirationMonth, ccExpirationYear.substring(ccExpirationYear.length() - 2, ccExpirationYear.length())));
+        }
+
+        if (isNonEmpty) {
+            transactionRequest.setCard(card);
+        }
+    }
+
+    private void addDDData(final TransactionRequest transactionRequest, final PayeezyPaymentMethodsRecord nonNullPaymentMethodsRecord, final Iterable<PluginProperty> properties) {
+        boolean isNonEmpty = false;
+
+        final DebitCard debitCard = new DebitCard();
+
+        final String bic = PluginProperties.getValue(PROPERTY_DD_BANK_IDENTIFIER_CODE, nonNullPaymentMethodsRecord.getDdBic(), properties);
+        isNonEmpty = isNonEmpty || bic != null;
+        debitCard.setBic(bic);
+
+        final String iban = PluginProperties.getValue(PROPERTY_DD_ACCOUNT_NUMBER, nonNullPaymentMethodsRecord.getDdIban(), properties);
+        isNonEmpty = isNonEmpty || iban != null;
+        debitCard.setIban(iban);
+
+        final String mandateReference = PluginProperties.getValue(PROPERTY_DD_MANDATE, nonNullPaymentMethodsRecord.getDdMandate(), properties);
+        isNonEmpty = isNonEmpty || mandateReference != null;
+        debitCard.setMandateReference(mandateReference);
+
+        if (isNonEmpty) {
+            transactionRequest.setDebitCard(debitCard);
         }
     }
 
@@ -318,6 +383,7 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
         final String transactionTag;
         final BigDecimal nonNullAmount;
         final String nonNullCurrency;
+        final String method;
         try {
             final PayeezyResponsesRecord previousResponse = dao.getSuccessfulAuthorizationResponse(kbPaymentId, context.getTenantId());
             if (previousResponse == null) {
@@ -327,6 +393,7 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
             transactionTag = previousResponse.getTransactionTag();
             nonNullAmount = previousResponse.getAmount();
             nonNullCurrency = previousResponse.getCurrency();
+            method = previousResponse.getMethod();
         } catch (final SQLException e) {
             throw new PaymentPluginApiException("Unable to retrieve previous payment response for kbTransactionId " + kbTransactionId, e);
         }
@@ -339,6 +406,7 @@ public class PayeezyPaymentPluginApi extends PluginPaymentPluginApi<PayeezyRespo
         followUpRequest.setTransactionType(transactionType.name().toLowerCase());
         followUpRequest.setCurrency(currency == null ? nonNullCurrency : currency.name());
         followUpRequest.setAmount(String.valueOf(KillBillMoney.toMinorUnits(followUpRequest.getCurrency(), amount == null ? nonNullAmount : amount)));
+        followUpRequest.setPaymentMethod(method);
 
         final TransactionResponse response = transactionExecutor.execute(transactionId, followUpRequest);
         try {

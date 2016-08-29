@@ -16,7 +16,7 @@ package org.killbill.billing.plugin.payeezy.dao.gen.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PayeezyPaymentMethods extends org.jooq.impl.TableImpl<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord> {
 
-	private static final long serialVersionUID = -948921900;
+	private static final long serialVersionUID = -1084846782;
 
 	/**
 	 * The reference instance of <code>killbill.payeezy_payment_methods</code>
@@ -110,6 +110,26 @@ public class PayeezyPaymentMethods extends org.jooq.impl.TableImpl<org.killbill.
 	 * The column <code>killbill.payeezy_payment_methods.cc_track_data</code>.
 	 */
 	public final org.jooq.TableField<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord, java.lang.String> CC_TRACK_DATA = createField("cc_track_data", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+
+	/**
+	 * The column <code>killbill.payeezy_payment_methods.dd_holder_name</code>.
+	 */
+	public final org.jooq.TableField<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord, java.lang.String> DD_HOLDER_NAME = createField("dd_holder_name", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+
+	/**
+	 * The column <code>killbill.payeezy_payment_methods.dd_iban</code>.
+	 */
+	public final org.jooq.TableField<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord, java.lang.String> DD_IBAN = createField("dd_iban", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+
+	/**
+	 * The column <code>killbill.payeezy_payment_methods.dd_bic</code>.
+	 */
+	public final org.jooq.TableField<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord, java.lang.String> DD_BIC = createField("dd_bic", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+
+	/**
+	 * The column <code>killbill.payeezy_payment_methods.dd_mandate</code>.
+	 */
+	public final org.jooq.TableField<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord, java.lang.String> DD_MANDATE = createField("dd_mandate", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
 	/**
 	 * The column <code>killbill.payeezy_payment_methods.address1</code>.

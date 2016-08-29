@@ -143,6 +143,10 @@ Plugin properties
 | ccStartMonth             | Credit card start month                       |
 | ccStartYear              | Credit card start year                        |
 | ccVerificationValue      | CVC/CVV/CVN                                   |
+| ddNumber                 | Direct Debit number                           |
+| ddHolderName             | Direct Debit holder name                      |
+| ddBic                    | Direct Debit bank identification code         |
+| ddMandate                | Direct Debit mandate reference                |
 | email                    | Purchaser email                               |
 | address1                 | Billing address first line                    |
 | address2                 | Billing address second line                   |

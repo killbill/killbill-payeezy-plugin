@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,7 +31,9 @@ import org.joda.time.DateTime;
 import org.jooq.impl.DSL;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.payment.api.TransactionType;
+import org.killbill.billing.plugin.api.payment.PluginPaymentPluginApi;
 import org.killbill.billing.plugin.dao.payment.PluginPaymentDao;
+import org.killbill.billing.plugin.payeezy.api.PayeezyPaymentPluginApi;
 import org.killbill.billing.plugin.payeezy.dao.gen.tables.PayeezyPaymentMethods;
 import org.killbill.billing.plugin.payeezy.dao.gen.tables.PayeezyResponses;
 import org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord;
@@ -41,6 +44,7 @@ import com.firstdata.payeezy.models.transaction.TransactionResponse;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 
+import static org.killbill.billing.plugin.payeezy.dao.gen.Tables.PAYEEZY_PAYMENT_METHODS;
 import static org.killbill.billing.plugin.payeezy.dao.gen.Tables.PAYEEZY_RESPONSES;
 
 public class PayeezyDao extends PluginPaymentDao<PayeezyResponsesRecord, PayeezyResponses, PayeezyPaymentMethodsRecord, PayeezyPaymentMethods> {
@@ -74,6 +78,118 @@ public class PayeezyDao extends PluginPaymentDao<PayeezyResponsesRecord, Payeezy
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // Payment methods
+
+    @Override
+    public void addPaymentMethod(final UUID kbAccountId, final UUID kbPaymentMethodId, final boolean isDefault, final Map<String, String> properties, final DateTime utcNow, final UUID kbTenantId) throws SQLException {
+        /* Clone our properties, what we have been given might be unmodifiable */
+        final Map<String, String> clonedProperties = new HashMap<String, String>(properties);
+
+        /* Extract and remove known values from the properties map that will become "additional data" */
+        final String token = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_TOKEN);
+        final String ccFirstName = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_FIRST_NAME);
+        final String ccLastName = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_LAST_NAME);
+        final String ccType = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_TYPE);
+        final String ccExpirationMonth = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_EXPIRATION_MONTH);
+        final String ccExpirationYear = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_EXPIRATION_YEAR);
+        final String ccNumber = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_NUMBER);
+        final String ccStartMonth = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_START_MONTH);
+        final String ccStartYear = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_START_YEAR);
+        final String ccIssueNumber = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_ISSUE_NUMBER);
+        final String ccVerificationValue = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_VERIFICATION_VALUE);
+        final String ccTrackData = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CC_TRACK_DATA);
+        final String ddHolderName = clonedProperties.remove(PayeezyPaymentPluginApi.PROPERTY_DD_HOLDER_NAME);
+        final String ddIban = clonedProperties.remove(PayeezyPaymentPluginApi.PROPERTY_DD_ACCOUNT_NUMBER);
+        final String ddBic = clonedProperties.remove(PayeezyPaymentPluginApi.PROPERTY_DD_BANK_IDENTIFIER_CODE);
+        final String ddMandate = clonedProperties.remove(PayeezyPaymentPluginApi.PROPERTY_DD_MANDATE);
+        final String address1 = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_ADDRESS1);
+        final String address2 = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_ADDRESS2);
+        final String city = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_CITY);
+        final String state = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_STATE);
+        final String zip = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_ZIP);
+        final String country = clonedProperties.remove(PluginPaymentPluginApi.PROPERTY_COUNTRY);
+
+        /* Calculate last 4 digits of the credit card number */
+        final String ccLast4 = ccNumber == null ? null : ccNumber.substring(ccNumber.length() - 4, ccNumber.length());
+
+        /* Calculate the additional data to store */
+        final String additionalData = asString(clonedProperties);
+
+        /* Store computed data */
+        execute(dataSource.getConnection(),
+                new WithConnectionCallback<Void>() {
+                    @Override
+                    public Void withConnection(final Connection conn) throws SQLException {
+                        DSL.using(conn, dialect, settings)
+                           .insertInto(paymentMethodsTable,
+                                       PAYEEZY_PAYMENT_METHODS.KB_ACCOUNT_ID,
+                                       PAYEEZY_PAYMENT_METHODS.KB_PAYMENT_METHOD_ID,
+                                       PAYEEZY_PAYMENT_METHODS.TOKEN,
+                                       PAYEEZY_PAYMENT_METHODS.CC_FIRST_NAME,
+                                       PAYEEZY_PAYMENT_METHODS.CC_LAST_NAME,
+                                       PAYEEZY_PAYMENT_METHODS.CC_TYPE,
+                                       PAYEEZY_PAYMENT_METHODS.CC_EXP_MONTH,
+                                       PAYEEZY_PAYMENT_METHODS.CC_EXP_YEAR,
+                                       PAYEEZY_PAYMENT_METHODS.CC_NUMBER,
+                                       PAYEEZY_PAYMENT_METHODS.CC_LAST_4,
+                                       PAYEEZY_PAYMENT_METHODS.CC_START_MONTH,
+                                       PAYEEZY_PAYMENT_METHODS.CC_START_YEAR,
+                                       PAYEEZY_PAYMENT_METHODS.CC_ISSUE_NUMBER,
+                                       PAYEEZY_PAYMENT_METHODS.CC_VERIFICATION_VALUE,
+                                       PAYEEZY_PAYMENT_METHODS.CC_TRACK_DATA,
+                                       PAYEEZY_PAYMENT_METHODS.DD_HOLDER_NAME,
+                                       PAYEEZY_PAYMENT_METHODS.DD_BIC,
+                                       PAYEEZY_PAYMENT_METHODS.DD_IBAN,
+                                       PAYEEZY_PAYMENT_METHODS.DD_MANDATE,
+                                       PAYEEZY_PAYMENT_METHODS.ADDRESS1,
+                                       PAYEEZY_PAYMENT_METHODS.ADDRESS2,
+                                       PAYEEZY_PAYMENT_METHODS.CITY,
+                                       PAYEEZY_PAYMENT_METHODS.STATE,
+                                       PAYEEZY_PAYMENT_METHODS.ZIP,
+                                       PAYEEZY_PAYMENT_METHODS.COUNTRY,
+                                       PAYEEZY_PAYMENT_METHODS.IS_DEFAULT,
+                                       PAYEEZY_PAYMENT_METHODS.IS_DELETED,
+                                       PAYEEZY_PAYMENT_METHODS.ADDITIONAL_DATA,
+                                       PAYEEZY_PAYMENT_METHODS.CREATED_DATE,
+                                       PAYEEZY_PAYMENT_METHODS.UPDATED_DATE,
+                                       PAYEEZY_PAYMENT_METHODS.KB_TENANT_ID)
+                           .values(kbAccountId.toString(),
+                                   kbPaymentMethodId.toString(),
+                                   token,
+                                   ccFirstName,
+                                   ccLastName,
+                                   ccType,
+                                   ccExpirationMonth,
+                                   ccExpirationYear,
+                                   ccNumber,
+                                   ccLast4,
+                                   ccStartMonth,
+                                   ccStartYear,
+                                   ccIssueNumber,
+                                   ccVerificationValue,
+                                   ccTrackData,
+                                   ddHolderName,
+                                   ddBic,
+                                   ddIban,
+                                   ddMandate,
+                                   address1,
+                                   address2,
+                                   city,
+                                   state,
+                                   zip,
+                                   country,
+                                   fromBoolean(isDefault),
+                                   FALSE,
+                                   additionalData,
+                                   toTimestamp(utcNow),
+                                   toTimestamp(utcNow),
+                                   kbTenantId.toString())
+                           .execute();
+                        return null;
+                    }
+                });
     }
 
     // Responses

@@ -16,7 +16,7 @@ package org.killbill.billing.plugin.payeezy.dao.gen.tables.records;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PayeezyPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordImpl<org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyPaymentMethodsRecord> {
 
-	private static final long serialVersionUID = 1139930880;
+	private static final long serialVersionUID = -326702934;
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.record_id</code>.
@@ -243,171 +243,227 @@ public class PayeezyPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordIm
 	}
 
 	/**
+	 * Setter for <code>killbill.payeezy_payment_methods.dd_holder_name</code>.
+	 */
+	public void setDdHolderName(java.lang.String value) {
+		setValue(16, value);
+	}
+
+	/**
+	 * Getter for <code>killbill.payeezy_payment_methods.dd_holder_name</code>.
+	 */
+	public java.lang.String getDdHolderName() {
+		return (java.lang.String) getValue(16);
+	}
+
+	/**
+	 * Setter for <code>killbill.payeezy_payment_methods.dd_iban</code>.
+	 */
+	public void setDdIban(java.lang.String value) {
+		setValue(17, value);
+	}
+
+	/**
+	 * Getter for <code>killbill.payeezy_payment_methods.dd_iban</code>.
+	 */
+	public java.lang.String getDdIban() {
+		return (java.lang.String) getValue(17);
+	}
+
+	/**
+	 * Setter for <code>killbill.payeezy_payment_methods.dd_bic</code>.
+	 */
+	public void setDdBic(java.lang.String value) {
+		setValue(18, value);
+	}
+
+	/**
+	 * Getter for <code>killbill.payeezy_payment_methods.dd_bic</code>.
+	 */
+	public java.lang.String getDdBic() {
+		return (java.lang.String) getValue(18);
+	}
+
+	/**
+	 * Setter for <code>killbill.payeezy_payment_methods.dd_mandate</code>.
+	 */
+	public void setDdMandate(java.lang.String value) {
+		setValue(19, value);
+	}
+
+	/**
+	 * Getter for <code>killbill.payeezy_payment_methods.dd_mandate</code>.
+	 */
+	public java.lang.String getDdMandate() {
+		return (java.lang.String) getValue(19);
+	}
+
+	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.address1</code>.
 	 */
 	public void setAddress1(java.lang.String value) {
-		setValue(16, value);
+		setValue(20, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.address1</code>.
 	 */
 	public java.lang.String getAddress1() {
-		return (java.lang.String) getValue(16);
+		return (java.lang.String) getValue(20);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.address2</code>.
 	 */
 	public void setAddress2(java.lang.String value) {
-		setValue(17, value);
+		setValue(21, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.address2</code>.
 	 */
 	public java.lang.String getAddress2() {
-		return (java.lang.String) getValue(17);
+		return (java.lang.String) getValue(21);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.city</code>.
 	 */
 	public void setCity(java.lang.String value) {
-		setValue(18, value);
+		setValue(22, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.city</code>.
 	 */
 	public java.lang.String getCity() {
-		return (java.lang.String) getValue(18);
+		return (java.lang.String) getValue(22);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.state</code>.
 	 */
 	public void setState(java.lang.String value) {
-		setValue(19, value);
+		setValue(23, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.state</code>.
 	 */
 	public java.lang.String getState() {
-		return (java.lang.String) getValue(19);
+		return (java.lang.String) getValue(23);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.zip</code>.
 	 */
 	public void setZip(java.lang.String value) {
-		setValue(20, value);
+		setValue(24, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.zip</code>.
 	 */
 	public java.lang.String getZip() {
-		return (java.lang.String) getValue(20);
+		return (java.lang.String) getValue(24);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.country</code>.
 	 */
 	public void setCountry(java.lang.String value) {
-		setValue(21, value);
+		setValue(25, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.country</code>.
 	 */
 	public java.lang.String getCountry() {
-		return (java.lang.String) getValue(21);
+		return (java.lang.String) getValue(25);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.is_default</code>.
 	 */
 	public void setIsDefault(java.lang.Byte value) {
-		setValue(22, value);
+		setValue(26, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.is_default</code>.
 	 */
 	public java.lang.Byte getIsDefault() {
-		return (java.lang.Byte) getValue(22);
+		return (java.lang.Byte) getValue(26);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.is_deleted</code>.
 	 */
 	public void setIsDeleted(java.lang.Byte value) {
-		setValue(23, value);
+		setValue(27, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.is_deleted</code>.
 	 */
 	public java.lang.Byte getIsDeleted() {
-		return (java.lang.Byte) getValue(23);
+		return (java.lang.Byte) getValue(27);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.additional_data</code>.
 	 */
 	public void setAdditionalData(java.lang.String value) {
-		setValue(24, value);
+		setValue(28, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.additional_data</code>.
 	 */
 	public java.lang.String getAdditionalData() {
-		return (java.lang.String) getValue(24);
+		return (java.lang.String) getValue(28);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.created_date</code>.
 	 */
 	public void setCreatedDate(java.sql.Timestamp value) {
-		setValue(25, value);
+		setValue(29, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.created_date</code>.
 	 */
 	public java.sql.Timestamp getCreatedDate() {
-		return (java.sql.Timestamp) getValue(25);
+		return (java.sql.Timestamp) getValue(29);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.updated_date</code>.
 	 */
 	public void setUpdatedDate(java.sql.Timestamp value) {
-		setValue(26, value);
+		setValue(30, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.updated_date</code>.
 	 */
 	public java.sql.Timestamp getUpdatedDate() {
-		return (java.sql.Timestamp) getValue(26);
+		return (java.sql.Timestamp) getValue(30);
 	}
 
 	/**
 	 * Setter for <code>killbill.payeezy_payment_methods.kb_tenant_id</code>.
 	 */
 	public void setKbTenantId(java.lang.String value) {
-		setValue(27, value);
+		setValue(31, value);
 	}
 
 	/**
 	 * Getter for <code>killbill.payeezy_payment_methods.kb_tenant_id</code>.
 	 */
 	public java.lang.String getKbTenantId() {
-		return (java.lang.String) getValue(27);
+		return (java.lang.String) getValue(31);
 	}
 
 	// -------------------------------------------------------------------------
@@ -436,7 +492,7 @@ public class PayeezyPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordIm
 	/**
 	 * Create a detached, initialised PayeezyPaymentMethodsRecord
 	 */
-	public PayeezyPaymentMethodsRecord(org.jooq.types.UInteger recordId, java.lang.String kbAccountId, java.lang.String kbPaymentMethodId, java.lang.String token, java.lang.String ccFirstName, java.lang.String ccLastName, java.lang.String ccType, java.lang.String ccExpMonth, java.lang.String ccExpYear, java.lang.String ccNumber, java.lang.String ccLast_4, java.lang.String ccStartMonth, java.lang.String ccStartYear, java.lang.String ccIssueNumber, java.lang.String ccVerificationValue, java.lang.String ccTrackData, java.lang.String address1, java.lang.String address2, java.lang.String city, java.lang.String state, java.lang.String zip, java.lang.String country, java.lang.Byte isDefault, java.lang.Byte isDeleted, java.lang.String additionalData, java.sql.Timestamp createdDate, java.sql.Timestamp updatedDate, java.lang.String kbTenantId) {
+	public PayeezyPaymentMethodsRecord(org.jooq.types.UInteger recordId, java.lang.String kbAccountId, java.lang.String kbPaymentMethodId, java.lang.String token, java.lang.String ccFirstName, java.lang.String ccLastName, java.lang.String ccType, java.lang.String ccExpMonth, java.lang.String ccExpYear, java.lang.String ccNumber, java.lang.String ccLast_4, java.lang.String ccStartMonth, java.lang.String ccStartYear, java.lang.String ccIssueNumber, java.lang.String ccVerificationValue, java.lang.String ccTrackData, java.lang.String ddHolderName, java.lang.String ddIban, java.lang.String ddBic, java.lang.String ddMandate, java.lang.String address1, java.lang.String address2, java.lang.String city, java.lang.String state, java.lang.String zip, java.lang.String country, java.lang.Byte isDefault, java.lang.Byte isDeleted, java.lang.String additionalData, java.sql.Timestamp createdDate, java.sql.Timestamp updatedDate, java.lang.String kbTenantId) {
 		super(org.killbill.billing.plugin.payeezy.dao.gen.tables.PayeezyPaymentMethods.PAYEEZY_PAYMENT_METHODS);
 
 		setValue(0, recordId);
@@ -455,17 +511,21 @@ public class PayeezyPaymentMethodsRecord extends org.jooq.impl.UpdatableRecordIm
 		setValue(13, ccIssueNumber);
 		setValue(14, ccVerificationValue);
 		setValue(15, ccTrackData);
-		setValue(16, address1);
-		setValue(17, address2);
-		setValue(18, city);
-		setValue(19, state);
-		setValue(20, zip);
-		setValue(21, country);
-		setValue(22, isDefault);
-		setValue(23, isDeleted);
-		setValue(24, additionalData);
-		setValue(25, createdDate);
-		setValue(26, updatedDate);
-		setValue(27, kbTenantId);
+		setValue(16, ddHolderName);
+		setValue(17, ddIban);
+		setValue(18, ddBic);
+		setValue(19, ddMandate);
+		setValue(20, address1);
+		setValue(21, address2);
+		setValue(22, city);
+		setValue(23, state);
+		setValue(24, zip);
+		setValue(25, country);
+		setValue(26, isDefault);
+		setValue(27, isDeleted);
+		setValue(28, additionalData);
+		setValue(29, createdDate);
+		setValue(30, updatedDate);
+		setValue(31, kbTenantId);
 	}
 }
