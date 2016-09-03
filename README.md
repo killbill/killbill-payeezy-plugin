@@ -71,24 +71,32 @@ curl -v \
        "pluginInfo": {
          "properties": [
            {
+             "key": "ccFirstName",
+             "value": "John"
+           },
+           {
              "key": "ccLastName",
-             "value": "KillBill"
+             "value": "Smith"
            },
            {
              "key": "ccExpirationMonth",
-             "value": 8
+             "value": 10
            },
            {
              "key": "ccExpirationYear",
-             "value": 2018
+             "value": 2020
            },
            {
              "key": "ccNumber",
-             "value": 401200033330026
+             "value": 4788250000028291
+           },
+           {
+             "key": "ccType",
+             "value": "visa"
            },
            {
              "key": "ccVerificationValue",
-             "value": 737
+             "value": 123
            }
          ]
        }
