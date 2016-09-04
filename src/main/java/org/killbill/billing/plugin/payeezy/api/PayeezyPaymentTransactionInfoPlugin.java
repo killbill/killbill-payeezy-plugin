@@ -18,6 +18,8 @@
 package org.killbill.billing.plugin.payeezy.api;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -30,10 +32,14 @@ import org.killbill.billing.payment.plugin.api.PaymentPluginStatus;
 import org.killbill.billing.plugin.api.payment.PluginPaymentTransactionInfoPlugin;
 import org.killbill.billing.plugin.payeezy.dao.gen.tables.records.PayeezyResponsesRecord;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firstdata.payeezy.models.transaction.TransactionResponse;
 import com.google.common.base.Strings;
 
 public class PayeezyPaymentTransactionInfoPlugin extends PluginPaymentTransactionInfoPlugin {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final int ERROR_CODE_MAX_LENGTH = 32;
 
     public PayeezyPaymentTransactionInfoPlugin(final UUID kbPaymentId,
                                                final UUID kbTransactionId,
@@ -48,7 +54,7 @@ public class PayeezyPaymentTransactionInfoPlugin extends PluginPaymentTransactio
               amount,
               currency,
               getPaymentPluginStatus(response.getTransactionStatus(), response.getValidationStatus()),
-              response.getBankMessage() != null ? response.getBankMessage() : response.getExactMessage(),
+              toGatewayError(response.getBankMessage() != null ? response.getBankMessage() : response.getExactMessage()),
               response.getBankResponseCode() != null ? response.getBankResponseCode() : response.getExactResponseCode(),
               response.getTransactionId(),
               response.getTransactionTag(),
@@ -64,13 +70,41 @@ public class PayeezyPaymentTransactionInfoPlugin extends PluginPaymentTransactio
               record.getAmount(),
               Strings.isNullOrEmpty(record.getCurrency()) ? null : Currency.valueOf(record.getCurrency()),
               getPaymentPluginStatus(record.getTransactionStatus(), record.getValidationStatus()),
-              record.getBankMessage() != null ? record.getBankMessage() : record.getGatewayMessage(),
+              toGatewayError(record.getBankMessage() != null ? record.getBankMessage() : record.getGatewayMessage()),
               record.getBankRespCode() != null ? record.getBankRespCode() : record.getGatewayRespCode(),
               record.getTransactionId(),
               record.getTransactionTag(),
               new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
               new DateTime(record.getCreatedDate(), DateTimeZone.UTC),
               PayeezyModelPluginBase.buildPluginProperties(record.getAdditionalData()));
+    }
+
+    private static String toGatewayError(@Nullable final String rawMsg) {
+        try {
+            final Map map = objectMapper.readValue(rawMsg, Map.class);
+            if (map.get("payeezyMessage") != null) {
+                final Map payeezyMessage = objectMapper.readValue((String) map.get("payeezyMessage"), Map.class);
+                if (payeezyMessage.get("Error") != null && payeezyMessage.get("Error") instanceof Map) {
+                    final Collection messages = (Collection) (((Map) payeezyMessage.get("Error")).get("messages"));
+                    if (messages != null && !messages.isEmpty()) {
+                        return truncate((String) ((Map) messages.iterator().next()).get("description"));
+                    }
+                }
+            }
+        } catch (final Exception ignored) {
+        }
+
+        return truncate(rawMsg);
+    }
+
+    private static String truncate(@Nullable final String string) {
+        if (string == null) {
+            return null;
+        } else if (string.length() <= ERROR_CODE_MAX_LENGTH) {
+            return string;
+        } else {
+            return string.substring(0, ERROR_CODE_MAX_LENGTH);
+        }
     }
 
     private static PaymentPluginStatus getPaymentPluginStatus(final String transactionStatus, final String validationStatus) {
