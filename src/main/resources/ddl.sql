@@ -27,7 +27,7 @@ create table payeezy_responses (
 , bank_resp_code varchar(64)
 , bank_message varchar(255)
 , gateway_resp_code varchar(64)
-, gateway_message varchar(255)
+, gateway_message text DEFAULT NULL
 , correlation_id varchar(64)
 , additional_data longtext default null
 , created_date datetime not null
